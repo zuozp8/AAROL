@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AAROL/AAROL.iml" filepath="$PROJECT_DIR$/AAROL/AAROL.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AAROLProject.iml" filepath="$PROJECT_DIR$/AAROLProject.iml" />
+    </modules>
+  </component>
+</project>
+
