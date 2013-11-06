@@ -3,6 +3,7 @@ package iswd.aarol;
 import android.app.Activity;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
@@ -11,12 +12,13 @@ import iswd.aarol.widget.CameraPreview;
 
 public class MainActivity extends Activity {
 
-    private Camera mCamera;
-    private CameraPreview mPreview;
+    private Camera camera = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.e("AAROL", "OnCreate");
 
         setContentView(R.layout.activity_main);
     }
@@ -31,8 +33,10 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_settings:
+            case R.id.action_settings: {
+                camera.startPreview();
                 return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -40,33 +44,39 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        mCamera = getCameraInstance();
-        mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.container);
-        preview.addView(mPreview);
+
+        Log.e("AAROL", "Camera: " + camera);
+        Log.e("AAROL", "Preview: " + getCameraPreview());
+
+        //prepare camera
+        camera = Camera.open();
+
+        //Search for existing preview
+        CameraPreview preview = getCameraPreview();
+        if (preview == null) {
+            preview = new CameraPreview(this, camera);
+            FrameLayout container = (FrameLayout) findViewById(R.id.container);
+            Log.e("AAROL", "Container has: " + container.getChildCount());
+            container.removeAllViews();
+            container.addView(preview);
+        } else {
+            preview.setCamera(camera);
+        }
+    }
+
+    private CameraPreview getCameraPreview() {
+        return (CameraPreview) findViewById(R.id.cameraPreview);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         // release the camera immediately on pause event
-        if (mCamera != null) {
-            mCamera.release();
-            mCamera = null;
+        if (camera != null) {
+            camera.release();
+            camera = null;
+            getCameraPreview().setCamera(null);
         }
-    }
-
-    /**
-     * A safe way to get an instance of the Camera object.
-     */
-    public static Camera getCameraInstance() {
-        Camera c = null;
-        try {
-            c = Camera.open();
-        } catch (Exception e) {
-            // Camera is not available (in use or does not exist)
-        }
-        return c; // returns null if camera is unavailable
     }
 
 }
