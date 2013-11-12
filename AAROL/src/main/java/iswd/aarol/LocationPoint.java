@@ -17,7 +17,8 @@ public class LocationPoint {
     private boolean hasAltitude = false;
 
     public class XYZLocation {
-        double x, y, z;
+        public double x, y, z;
+
         public XYZLocation(double x, double y, double z) {
             this.x = x;
             this.y = y;

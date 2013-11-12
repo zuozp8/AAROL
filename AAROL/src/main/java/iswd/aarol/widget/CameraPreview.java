@@ -2,21 +2,34 @@ package iswd.aarol.widget;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
 
-import iswd.aarol.R;
-
 public class CameraPreview extends SurfaceView {
     private Camera cameraInstance = null;
     private boolean surfaceCreated = false;
 
+
+    public CameraPreview(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        initialize();
+    }
+
+    public CameraPreview(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        initialize();
+    }
+
     public CameraPreview(Context context) {
         super(context);
+        initialize();
+    }
 
+    private void initialize() {
         // Install a SurfaceHolder.Callback so we get notified when the
         // underlying surface is created and destroyed.
         SurfaceHolder holder = getHolder();
@@ -39,8 +52,6 @@ public class CameraPreview extends SurfaceView {
                 // Take care of releasing the Camera preview in your activity.
             }
         });
-
-        setId(R.id.cameraPreview);
     }
 
     public void setCamera(Camera camera) {

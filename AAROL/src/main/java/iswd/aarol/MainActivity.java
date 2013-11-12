@@ -15,14 +15,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-
 
 import iswd.aarol.LocationPoint.XYZLocation;
 import iswd.aarol.widget.CameraPreview;
-
-import static java.lang.Math.*;
+import iswd.aarol.widget.OverlayView;
 
 
 public class MainActivity extends Activity {
@@ -37,7 +33,7 @@ public class MainActivity extends Activity {
     private SensorEventListener magneticListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
-            lastGeomagnetic = event.values;
+            lastGeomagnetic = event.values.clone();
             processSensors();
         }
 
@@ -49,7 +45,7 @@ public class MainActivity extends Activity {
     private SensorEventListener gravityListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
-            lastGravity = event.values;
+            lastGravity = event.values.clone();
             processSensors();
         }
 
@@ -116,16 +112,6 @@ public class MainActivity extends Activity {
 
         //Search for existing preview
         CameraPreview preview = getCameraPreview();
-        if (preview == null) {
-            preview = new CameraPreview(this);
-            FrameLayout container = (FrameLayout) findViewById(R.id.container);
-            container.removeAllViews();
-            container.addView(preview);
-            TextView textOverlay = new TextView(this);
-            textOverlay.setId(2141523);
-            textOverlay.setText("kupa");
-            container.addView(textOverlay);
-        }
         preview.setCamera(camera);
 
         SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -157,38 +143,35 @@ public class MainActivity extends Activity {
         locationManager.removeUpdates(locationListener);
     }
 
-    private CameraPreview getCameraPreview() {
+    public CameraPreview getCameraPreview() {
         return (CameraPreview) findViewById(R.id.cameraPreview);
+    }
+
+    public XYZLocation getLastPosition() {
+        return lastPosition;
+    }
+
+    public Double getLastAltitude() {
+        return lastAltitude;
+    }
+
+    public float[] getLastGravity() {
+        return lastGravity;
+    }
+
+    public float[] getLastGeomagnetic() {
+        return lastGeomagnetic;
+    }
+
+    public Camera getCamera() {
+        return camera;
     }
 
     private void processSensors() {
         if (lastGravity != null && lastGeomagnetic != null && lastPosition != null) {
-            XYZLocation testPosition = LocationPoint.getKarolinChimneyLocation().getXYZPosition(lastAltitude != null);
-            testPosition.x -= lastPosition.x;
-            testPosition.y -= lastPosition.y;
-            testPosition.z -= lastPosition.z;
-
-            float[] R = new float[9];
-            float[] I = new float[9];
-            SensorManager.getRotationMatrix(R, I, lastGravity, lastGeomagnetic);
-
-            double[] newPosition = new double[]{
-                    testPosition.x * R[0] + testPosition.y * R[3] + testPosition.z * R[6],
-                    testPosition.x * R[1] + testPosition.y * R[4] + testPosition.z * R[7],
-                    testPosition.x * R[2] + testPosition.y * R[5] + testPosition.z * R[8]
-            };
-
-            if (newPosition[2] == 0.) {
-                return;
-            }
-
-            double xOnScreen = toDegrees(atan(newPosition[1] / newPosition[2])) / camera.getParameters().getHorizontalViewAngle() * getCameraPreview().getWidth() / 2;
-            double yOnScreen = toDegrees(atan(newPosition[0] / newPosition[2])) / camera.getParameters().getVerticalViewAngle() * getCameraPreview().getHeight() / 2;
-
-            TextView text= (TextView) findViewById(2141523);
-            text.setText("X: " + newPosition[0] + "\nY: " + newPosition[1] + "\nZ: " + newPosition[2]
-                    + "\nPosition: " + xOnScreen + " Vertical:" + yOnScreen
-            );
+            OverlayView overlayView = (OverlayView) findViewById(R.id.overlayView);
+            overlayView.setReady();
+            overlayView.invalidate();
         }
     }
 }
