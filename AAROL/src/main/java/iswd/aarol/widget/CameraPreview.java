@@ -14,9 +14,8 @@ public class CameraPreview extends SurfaceView {
     private Camera cameraInstance = null;
     private boolean surfaceCreated = false;
 
-    public CameraPreview(Context context, Camera camera) {
+    public CameraPreview(Context context) {
         super(context);
-        cameraInstance = camera;
 
         // Install a SurfaceHolder.Callback so we get notified when the
         // underlying surface is created and destroyed.
