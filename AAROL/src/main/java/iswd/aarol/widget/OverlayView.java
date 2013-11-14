@@ -12,9 +12,11 @@ import android.widget.TextView;
 import iswd.aarol.LocationPoint;
 import iswd.aarol.MainActivity;
 import iswd.aarol.R;
+import iswd.aarol.XYZLocation;
 
 import static java.lang.Math.atan;
 import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
 
 public class OverlayView extends View {
     private boolean ready = false;
@@ -41,23 +43,27 @@ public class OverlayView extends View {
 
         MainActivity activity = (MainActivity) getContext();
 
-        final LocationPoint.XYZLocation lastPosition = activity.getLastPosition();
-        final Double lastAltitude = activity.getLastAltitude();
+        final LocationPoint lastLocation = activity.getLastLocation();
         final float[] lastGravity = activity.getLastGravity();
         final float[] lastGeomagnetic = activity.getLastGeomagnetic();
 
-        LocationPoint.XYZLocation testPosition = LocationPoint.getKarolinChimneyLocation().getXYZPosition(lastAltitude != null);
-        testPosition.x -= lastPosition.x;
-        testPosition.y -= lastPosition.y;
-        testPosition.z -= lastPosition.z;
+        LocationPoint testLocation = LocationPoint.getKarolinChimneyLocation();
+
+        boolean useAltitude = lastLocation.hasAltitude() && testLocation.hasAltitude();
+
+        XYZLocation testXYZ = testLocation.getXYZPosition(useAltitude);
+
+        XYZLocation translatedTestXYZ = testXYZ.rotateAlongY(-toRadians(lastLocation.getLongitude())).rotateAlongX(toRadians(lastLocation.getLatitude()));
+        
+        translatedTestXYZ.z -= lastLocation.getEarthRadius();
 
         float[] transformationMatrix = new float[9];
         SensorManager.getRotationMatrix(transformationMatrix, null, lastGravity, lastGeomagnetic);
 
         double[] newPosition = new double[]{
-                testPosition.x * transformationMatrix[0] + testPosition.y * transformationMatrix[3] + testPosition.z * transformationMatrix[6],
-                testPosition.x * transformationMatrix[1] + testPosition.y * transformationMatrix[4] + testPosition.z * transformationMatrix[7],
-                testPosition.x * transformationMatrix[2] + testPosition.y * transformationMatrix[5] + testPosition.z * transformationMatrix[8]
+                translatedTestXYZ.x * transformationMatrix[0] + translatedTestXYZ.y * transformationMatrix[3] + translatedTestXYZ.z * transformationMatrix[6],
+                translatedTestXYZ.x * transformationMatrix[1] + translatedTestXYZ.y * transformationMatrix[4] + translatedTestXYZ.z * transformationMatrix[7],
+                translatedTestXYZ.x * transformationMatrix[2] + translatedTestXYZ.y * transformationMatrix[5] + translatedTestXYZ.z * transformationMatrix[8]
         };
 
         if (newPosition[2] == 0.) {

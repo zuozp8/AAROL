@@ -16,7 +16,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 
-import iswd.aarol.LocationPoint.XYZLocation;
 import iswd.aarol.widget.CameraPreview;
 import iswd.aarol.widget.OverlayView;
 
@@ -25,8 +24,7 @@ public class MainActivity extends Activity {
 
     private Camera camera = null;
 
-    private XYZLocation lastPosition = null;
-    private Double lastAltitude = null;
+    private LocationPoint lastLocation = null;
     private float[] lastGravity = null;
     private float[] lastGeomagnetic = null;
 
@@ -57,8 +55,7 @@ public class MainActivity extends Activity {
     private LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-            lastPosition = new LocationPoint(location).getXYZPosition();
-            lastAltitude = location.hasAltitude() ? location.getAltitude() : null;
+            lastLocation = new LocationPoint(location);
             processSensors();
         }
 
@@ -147,12 +144,8 @@ public class MainActivity extends Activity {
         return (CameraPreview) findViewById(R.id.cameraPreview);
     }
 
-    public XYZLocation getLastPosition() {
-        return lastPosition;
-    }
-
-    public Double getLastAltitude() {
-        return lastAltitude;
+    public LocationPoint getLastLocation() {
+        return lastLocation;
     }
 
     public float[] getLastGravity() {
@@ -168,7 +161,7 @@ public class MainActivity extends Activity {
     }
 
     private void processSensors() {
-        if (lastGravity != null && lastGeomagnetic != null && lastPosition != null) {
+        if (lastGravity != null && lastGeomagnetic != null && lastLocation != null) {
             OverlayView overlayView = (OverlayView) findViewById(R.id.overlayView);
             overlayView.setReady();
             overlayView.invalidate();

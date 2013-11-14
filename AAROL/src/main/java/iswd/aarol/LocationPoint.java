@@ -6,6 +6,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
+import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
 
 public class LocationPoint {
@@ -14,54 +15,37 @@ public class LocationPoint {
     private final static double WGS84_B = 6356752.314245; //WGS84 semi-major axis, radius of earth on poles
 
     private double latitude, longitude, altitude;
-    private boolean hasAltitude = false;
-
-    public class XYZLocation {
-        public double x, y, z;
-
-        public XYZLocation(double x, double y, double z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-    }
+    private boolean _hasAltitude = false;
 
     public LocationPoint(Location l) {
         latitude = l.getLatitude();
         longitude = l.getLongitude();
         altitude = l.getAltitude();
-        hasAltitude = l.hasAltitude();
+        _hasAltitude = l.hasAltitude();
     }
 
     public LocationPoint(double latitude, double longitude, double altitude) {
         this(latitude, longitude);
         this.altitude = altitude;
-        hasAltitude = true;
+        _hasAltitude = true;
     }
 
     public LocationPoint(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
         altitude = 0;
-        hasAltitude = false;
+        _hasAltitude = false;
     }
 
     public static LocationPoint getKarolinChimneyLocation() {
         return new LocationPoint(52.436411, 16.988583, 83);
     }
 
-    public XYZLocation getXYZPosition() {
-        return getXYZPosition(true);
-    }
-
     public XYZLocation getXYZPosition(boolean useAltitude) {
         double latitude = toRadians(this.latitude);
         double longitude = toRadians(this.longitude);
 
-        double radius = WGS84_A * WGS84_B / sqrt(
-                pow(WGS84_B * cos(latitude), 2) +
-                        pow(WGS84_A * sin(latitude), 2)
-        );
+        double radius = getEarthRadius();
         if (useAltitude) {
             radius += this.altitude;
         }
@@ -71,5 +55,28 @@ public class LocationPoint {
         double x = radius * cos(latitude) * sin(longitude);
 
         return new XYZLocation(x, y, z);
+    }
+
+    public double getEarthRadius() {
+        return WGS84_A * WGS84_B / sqrt(
+                pow(WGS84_B * cos(toRadians(latitude)), 2) +
+                        pow(WGS84_A * sin(toRadians(latitude)), 2)
+        );
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public double getAltitude() {
+        return altitude;
+    }
+
+    public boolean hasAltitude() {
+        return _hasAltitude;
     }
 }
