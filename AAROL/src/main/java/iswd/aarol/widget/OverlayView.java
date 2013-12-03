@@ -70,6 +70,10 @@ public class OverlayView extends View {
             return;
         }
 
+        if (activity.getCamera() == null) {
+            return;
+        }
+
         double xOnScreen = toDegrees(atan(newPosition[1] / newPosition[2])) / activity.getCamera().getParameters().getHorizontalViewAngle() * activity.getCameraPreview().getWidth();
         double yOnScreen = toDegrees(atan(newPosition[0] / newPosition[2])) / activity.getCamera().getParameters().getVerticalViewAngle() * activity.getCameraPreview().getHeight();
 
@@ -84,7 +88,8 @@ public class OverlayView extends View {
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.WHITE);
+        paint.setColor(Color.RED);
+        paint.setStrokeWidth(2);
         canvas.drawCircle((float) (getWidth() / 2 + xOnScreen), (float) (getHeight() / 2 + yOnScreen), 10, paint);
     }
 

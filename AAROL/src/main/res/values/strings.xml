@@ -5,5 +5,14 @@
     <string name="action_settings">Settings</string>
     <string name="action_packages">Packages</string>
     <string name="action_about">About</string>
+    <string name="compass_low">Compass has low accuracy</string>
+    <string name="compass_medium">Compass has medium accuracy</string>
+    <string name="compass_high">Compass has high accuracy</string>
+    <string name="title_activity_about">About</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="about_aarol">Android Augmented Reality\nObject Labeler</string>
+    <string name="about_description">Project for Programming Technologies at Intelligent Decision Support Systems graduate course.</string>
+    <string name="about_authors">Authors:\ninż. Konrad Baumgart\ninż. Kalina Jasinska</string>
+    <string name="about_license">License: GNU GPLv3</string>
 
 </resources>

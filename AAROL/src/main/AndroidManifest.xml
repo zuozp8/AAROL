@@ -22,13 +22,21 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="iswd.aarol.MainActivity"
-            android:screenOrientation="landscape"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="iswd.aarol.AboutActivity"
+            android:label="@string/title_activity_about"
+            android:parentActivityName="iswd.aarol.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="iswd.aarol.MainActivity" />
         </activity>
     </application>
 

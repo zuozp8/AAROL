@@ -2,6 +2,7 @@ package iswd.aarol;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import iswd.aarol.widget.CameraPreview;
 import iswd.aarol.widget.OverlayView;
@@ -37,6 +39,19 @@ public class MainActivity extends Activity {
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            int textId;
+            switch (accuracy) {
+                case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+                    textId = R.string.compass_low;
+                    break;
+                case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+                    textId = R.string.compass_medium;
+                    break;
+                default:
+                    textId = R.string.compass_high;
+            }
+            Toast toast = Toast.makeText(getApplicationContext(), textId, Toast.LENGTH_LONG);
+            toast.show();
         }
     };
 
@@ -92,10 +107,14 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_settings: {
-                camera.startPreview();
+            case R.id.action_packages:
                 return true;
-            }
+            case R.id.action_settings:
+                return true;
+            case R.id.action_about:
+                Intent aboutIntent = new Intent(this, AboutActivity.class);
+                startActivity(aboutIntent);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
