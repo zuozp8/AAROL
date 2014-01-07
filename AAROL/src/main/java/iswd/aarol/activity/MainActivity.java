@@ -1,4 +1,4 @@
-package iswd.aarol;
+package iswd.aarol.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,12 +12,14 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import iswd.aarol.R;
+import iswd.aarol.model.LocationPoint;
 import iswd.aarol.widget.CameraPreview;
 import iswd.aarol.widget.OverlayView;
 
@@ -50,7 +52,7 @@ public class MainActivity extends Activity {
                 default:
                     textId = R.string.compass_high;
             }
-            Toast toast = Toast.makeText(getApplicationContext(), textId, Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(MainActivity.this, textId, Toast.LENGTH_LONG);
             toast.show();
         }
     };
@@ -91,7 +93,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.e("AAROL", "OnCreate");
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
@@ -107,14 +109,21 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_packages:
+            case R.id.action_packages: {
+                Intent aboutIntent = new Intent(this, PackagesActivity.class);
+                startActivity(aboutIntent);
                 return true;
-            case R.id.action_settings:
+            }
+            case R.id.action_settings: {
+                Intent aboutIntent = new Intent(this, SettingsActivity.class);
+                startActivity(aboutIntent);
                 return true;
-            case R.id.action_about:
+            }
+            case R.id.action_about: {
                 Intent aboutIntent = new Intent(this, AboutActivity.class);
                 startActivity(aboutIntent);
                 return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -138,7 +147,12 @@ public class MainActivity extends Activity {
         sensorManager.registerListener(gravityListener, gravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        } catch (IllegalArgumentException e) {
+            Toast toast = Toast.makeText(this, R.string.no_gps, Toast.LENGTH_LONG);
+            toast.show();
+        }
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
     }
 

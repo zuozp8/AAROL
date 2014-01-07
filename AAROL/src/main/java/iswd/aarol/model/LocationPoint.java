@@ -1,4 +1,4 @@
-package iswd.aarol;
+package iswd.aarol.model;
 
 import android.location.Location;
 
@@ -6,7 +6,6 @@ import static java.lang.Math.cos;
 import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
-import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
 
 public class LocationPoint {

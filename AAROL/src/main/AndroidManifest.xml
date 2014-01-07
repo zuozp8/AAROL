@@ -2,28 +2,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="iswd.aarol"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
     <uses-sdk
         android:minSdkVersion="16"
         android:targetSdkVersion="18" />
 
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <uses-feature android:name="android.hardware.sensor.accelerometer" />
     <uses-feature android:name="android.hardware.sensor.compass" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
-            android:name="iswd.aarol.MainActivity"
+            android:name=".activity.MainActivity"
             android:label="@string/app_name"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,9 +33,25 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="iswd.aarol.AboutActivity"
+            android:name=".activity.AboutActivity"
             android:label="@string/title_activity_about"
-            android:parentActivityName="iswd.aarol.MainActivity" >
+            android:parentActivityName="iswd.aarol.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="iswd.aarol.MainActivity" />
+        </activity>
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName="iswd.aarol.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="iswd.aarol.MainActivity" />
+        </activity>
+        <activity
+            android:name=".activity.PackagesActivity"
+            android:label="@string/title_activity_packages"
+            android:parentActivityName="iswd.aarol.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="iswd.aarol.MainActivity" />

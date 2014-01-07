@@ -1,6 +1,7 @@
-package iswd.aarol;
+package iswd.aarol.model;
 
-import static java.lang.Math.*;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 
 public class XYZLocation {
     public double x, y, z;

@@ -1,7 +1,10 @@
-package iswd.aarol;
+package iswd.aarol.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+
+import iswd.aarol.R;
+
 public class AboutActivity extends Activity {
 
     @Override

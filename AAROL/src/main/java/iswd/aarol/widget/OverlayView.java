@@ -7,12 +7,11 @@ import android.graphics.Paint;
 import android.hardware.SensorManager;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.TextView;
 
-import iswd.aarol.LocationPoint;
-import iswd.aarol.MainActivity;
 import iswd.aarol.R;
-import iswd.aarol.XYZLocation;
+import iswd.aarol.activity.MainActivity;
+import iswd.aarol.model.LocationPoint;
+import iswd.aarol.model.XYZLocation;
 
 import static java.lang.Math.atan;
 import static java.lang.Math.toDegrees;
@@ -20,6 +19,10 @@ import static java.lang.Math.toRadians;
 
 public class OverlayView extends View {
     private boolean ready = false;
+
+    private Paint waitingTextPaint = null;
+    private Paint circlesPaint = null;
+    private boolean paintsPrepared = false;
 
     public OverlayView(Context context) {
         super(context);
@@ -37,8 +40,15 @@ public class OverlayView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (!ready)
+        if (!paintsPrepared) {
+            preparePaints();
+        }
+
+        if (!ready) {
+            String message = getResources().getString(R.string.waiting_for_signals);
+            canvas.drawText(message, getWidth() / 2f, getHeight() / 2f, waitingTextPaint);
             return;
+        }
         ready = false;
 
         MainActivity activity = (MainActivity) getContext();
@@ -54,7 +64,7 @@ public class OverlayView extends View {
         XYZLocation testXYZ = testLocation.getXYZPosition(useAltitude);
 
         XYZLocation translatedTestXYZ = testXYZ.rotateAlongY(-toRadians(lastLocation.getLongitude())).rotateAlongX(toRadians(lastLocation.getLatitude()));
-        
+
         translatedTestXYZ.z -= lastLocation.getEarthRadius();
 
         float[] transformationMatrix = new float[9];
@@ -77,23 +87,27 @@ public class OverlayView extends View {
         double xOnScreen = toDegrees(atan(newPosition[1] / newPosition[2])) / activity.getCamera().getParameters().getHorizontalViewAngle() * activity.getCameraPreview().getWidth();
         double yOnScreen = toDegrees(atan(newPosition[0] / newPosition[2])) / activity.getCamera().getParameters().getVerticalViewAngle() * activity.getCameraPreview().getHeight();
 
-        TextView text = (TextView) activity.findViewById(R.id.textView);
-        text.setText("X: " + newPosition[0] + "\nY: " + newPosition[1] + "\nZ: " + newPosition[2]
-                + "\nPosition: " + xOnScreen + " Vertical:" + yOnScreen
-        );
-
         if (newPosition[2] > 0.) {
             return;
         }
 
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.RED);
-        paint.setStrokeWidth(2);
-        canvas.drawCircle((float) (getWidth() / 2 + xOnScreen), (float) (getHeight() / 2 + yOnScreen), 10, paint);
+        canvas.drawCircle((float) (getWidth() / 2 + xOnScreen), (float) (getHeight() / 2 + yOnScreen), 10, circlesPaint);
     }
 
     public void setReady() {
         ready = true;
+    }
+
+    private void preparePaints() {
+        waitingTextPaint = new Paint();
+        waitingTextPaint.setTextAlign(Paint.Align.CENTER);
+        waitingTextPaint.setTextSize(30);
+        waitingTextPaint.setColor(Color.RED);
+        waitingTextPaint.setShadowLayer(5f, 0f, 0f, Color.WHITE);
+
+        circlesPaint = new Paint();
+        circlesPaint.setStyle(Paint.Style.STROKE);
+        circlesPaint.setColor(Color.RED);
+        circlesPaint.setStrokeWidth(2);
     }
 }
