@@ -35,7 +35,7 @@
         <activity
             android:name=".activity.AboutActivity"
             android:label="@string/title_activity_about"
-            android:parentActivityName="iswd.aarol.MainActivity">
+            android:parentActivityName="iswd.aarol.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="iswd.aarol.MainActivity" />
@@ -43,7 +43,7 @@
         <activity
             android:name=".activity.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName="iswd.aarol.MainActivity">
+            android:parentActivityName="iswd.aarol.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="iswd.aarol.MainActivity" />
@@ -51,10 +51,18 @@
         <activity
             android:name=".activity.PackagesActivity"
             android:label="@string/title_activity_packages"
-            android:parentActivityName="iswd.aarol.MainActivity">
+            android:parentActivityName="iswd.aarol.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="iswd.aarol.MainActivity" />
+        </activity>
+        <activity
+            android:name=".activity.PackageDetailsActivity"
+            android:label="@string/title_activity_package_details"
+            android:parentActivityName="iswd.aarol.activity.PackagesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="iswd.aarol.PackagesActivity" />
         </activity>
     </application>
 

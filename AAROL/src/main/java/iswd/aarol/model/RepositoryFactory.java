@@ -1,22 +1,15 @@
 package iswd.aarol.model;
 
-import android.util.Xml;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public class RepositoryFactory {
-    private static String NS = ""; //XML namespace
+public class RepositoryFactory extends AbstractFromXMLFactory {
 
     public static Repository createFromXML(InputStream content) throws IOException, XmlPullParserException {
-        XmlPullParser parser = Xml.newPullParser();
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-        parser.setInput(content, null);
-        parser.nextTag();
-        parser.require(XmlPullParser.START_TAG, NS, "packageList");
+        XmlPullParser parser = initializeParser(content, "packageList");
 
         Repository result = new Repository();
 
@@ -50,14 +43,5 @@ public class RepositoryFactory {
         return result;
     }
 
-    private static String readTag(XmlPullParser parser, String name) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, NS, name);
-        String text = "";
-        if (parser.next() == XmlPullParser.TEXT) {
-            text = parser.getText();
-            parser.nextTag();
-        }
-        parser.require(XmlPullParser.END_TAG, NS, name);
-        return text;
-    }
+
 }

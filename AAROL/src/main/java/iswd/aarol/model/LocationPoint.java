@@ -15,6 +15,7 @@ public class LocationPoint {
 
     private double latitude, longitude, altitude;
     private boolean _hasAltitude = false;
+    private String name, wikipediaLink = null;
 
     public LocationPoint(Location l) {
         latitude = l.getLatitude();
@@ -46,7 +47,7 @@ public class LocationPoint {
 
         double radius = getEarthRadius();
         if (useAltitude) {
-            radius += this.altitude;
+            radius += getAltitude();
         }
 
         double y = radius * sin(latitude);
@@ -77,5 +78,21 @@ public class LocationPoint {
 
     public boolean hasAltitude() {
         return _hasAltitude;
+    }
+
+    public String getWikipediaLink() {
+        return wikipediaLink;
+    }
+
+    public void setWikipediaLink(String wikipediaLink) {
+        this.wikipediaLink = wikipediaLink;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

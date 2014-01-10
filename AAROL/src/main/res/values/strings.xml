@@ -12,6 +12,7 @@
     <string name="compass_high">Compass has high accuracy</string>
     <string name="no_gps">No GPS</string>
     <string name="waiting_for_signals">Waiting for signals</string>
+    <string name="cancel_lead_to">Cancel guiding</string>
 
     <string name="title_activity_about">About</string>
     <string name="about_aarol">Android Augmented Reality\nObject Labeler</string>
@@ -29,8 +30,15 @@
     <string name="package_download_http_error">HTTP error</string>
     <string name="package_download_format_error">XML format error</string>
     <string name="packege_by">by</string>
-    <string name="download_error">Error occured</string>
     <string name="download_button">download</string>
     <string name="delete_button">delete</string>
+    <string name="details_button">details</string>
     <string name="downloading_package">Downloading package</string>
+    <string name="download_error">Error occurred</string>
+
+    <string name="title_activity_package_details">Package details</string>
+    <string name="package_details_enabled">Enabled</string>
+    <string name="package_details_error">Error occurred while reading the package</string>
+    <string name="no_camera">Problem occurred while opening camera</string>
+    <string name="loading_package_error">Error occurred while loading one of the enabled packages</string>
 </resources>

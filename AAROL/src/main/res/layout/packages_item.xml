@@ -7,7 +7,7 @@
 
     <TextView
         android:layout_height="wrap_content"
-        android:id="@+id/textView"
+        android:id="@+id/packageNameText"
         android:layout_weight="1"
         android:layout_width="0dp" />
 
@@ -16,6 +16,15 @@
         android:layout_height="fill_parent"
         android:id="@+id/enableCheckBox"
         android:onClick="enableClicked" />
+
+    <ImageButton
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_agenda"
+        android:id="@+id/detailsButton"
+        android:onClick="detailsClicked"
+        android:contentDescription="@string/details_button" />
 
     <ImageButton
         style="?android:attr/buttonStyleSmall"

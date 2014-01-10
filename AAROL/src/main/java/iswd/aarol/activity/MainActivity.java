@@ -3,6 +3,7 @@ package iswd.aarol.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -11,24 +12,39 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import iswd.aarol.R;
+import iswd.aarol.model.LocationPackage;
+import iswd.aarol.model.LocationPackageFactory;
 import iswd.aarol.model.LocationPoint;
+import iswd.aarol.model.PackageManager;
 import iswd.aarol.widget.CameraPreview;
 import iswd.aarol.widget.OverlayView;
 
 
 public class MainActivity extends Activity {
 
+    public static final String LEAD_TO_PACKAGE_NAME = "leadTo";
+    public static final String LEAD_TO_LOCATION_ID = "leadToId";
+
     private Camera camera = null;
 
     private LocationPoint lastLocation = null;
+
+    private List<LocationPackage> enabledPackages = new ArrayList<LocationPackage>();
+    private LocationPoint leadToLocation = null;
     private float[] lastGravity = null;
     private float[] lastGeomagnetic = null;
 
@@ -52,7 +68,7 @@ public class MainActivity extends Activity {
                 default:
                     textId = R.string.compass_high;
             }
-            Toast toast = Toast.makeText(MainActivity.this, textId, Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(getApplicationContext(), textId, Toast.LENGTH_LONG);
             toast.show();
         }
     };
@@ -99,7 +115,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -131,14 +146,60 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        startCamera();
 
-        //prepare camera
-        camera = Camera.open();
+        startSensors();
 
-        //Search for existing preview
-        CameraPreview preview = getCameraPreview();
-        preview.setCamera(camera);
+        loadPackages();
 
+        manageLeadToMode();
+    }
+
+    private void loadPackages() {
+        for (String packageName : PackageManager.getEnabledPackageList(this)) {
+            try {
+                enabledPackages.add(LocationPackageFactory.create(this, packageName));
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast toast = Toast.makeText(getApplicationContext(), R.string.loading_package_error, Toast.LENGTH_LONG);
+                toast.show();
+            }
+        }
+    }
+
+    private void startCamera() {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                try {
+                    camera = Camera.open();
+                } catch (RuntimeException e) {
+                    Log.e("AAROLX", "error");
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    //Search for existing preview
+                    CameraPreview preview = getCameraPreview();
+                    preview.setCamera(camera);
+                } else {
+                    Toast toast = Toast.makeText(getApplicationContext(), R.string.no_camera, Toast.LENGTH_LONG);
+                    toast.show();
+                }
+            }
+
+            @Override
+            protected void onCancelled() {
+                stopCamera();
+            }
+        }.execute();
+    }
+
+    private void startSensors() {
         SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor magneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         sensorManager.registerListener(magneticListener, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
@@ -160,11 +221,19 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         // release the camera immediately on pause event
+        stopCamera();
+        stopSensors();
+    }
+
+    private void stopCamera() {
         if (camera != null) {
             camera.release();
             camera = null;
             getCameraPreview().setCamera(null);
         }
+    }
+
+    private void stopSensors() {
         SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensorManager.unregisterListener(magneticListener);
         sensorManager.unregisterListener(gravityListener);
@@ -199,5 +268,40 @@ public class MainActivity extends Activity {
             overlayView.setReady();
             overlayView.invalidate();
         }
+    }
+
+    private void manageLeadToMode() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String leadToPackageName = sharedPref.getString(MainActivity.LEAD_TO_PACKAGE_NAME, null);
+        if (leadToPackageName != null && PackageManager.isEnabled(this, leadToPackageName)) {
+            int leadToLocationId = sharedPref.getInt(MainActivity.LEAD_TO_LOCATION_ID, 0);
+            for (LocationPackage locationPackage : enabledPackages) {
+                if (locationPackage.getPackageName().equals(leadToPackageName)) {
+                    try {
+                        leadToLocation = locationPackage.getLocations().get(leadToLocationId);
+                    } catch (IndexOutOfBoundsException ignored) {
+                    }
+                }
+            }
+
+        }
+        findViewById(R.id.cancel_lead_to_button).setVisibility(leadToLocation != null ? View.VISIBLE : View.GONE);
+    }
+
+    public void cancelLeadTo(View view) {
+        SharedPreferences.Editor sharedPref = PreferenceManager.getDefaultSharedPreferences(this).edit();
+        sharedPref.remove(LEAD_TO_PACKAGE_NAME);
+        sharedPref.remove(LEAD_TO_LOCATION_ID);
+        sharedPref.commit();
+
+        manageLeadToMode();
+    }
+
+    public List<LocationPackage> getEnabledPackages() {
+        return enabledPackages;
+    }
+
+    public LocationPoint getLeadToLocation() {
+        return leadToLocation;
     }
 }

@@ -13,7 +13,7 @@ import java.util.Set;
 public class PackageManager {
     public static boolean isDownloaded(Context context, String name) {
         try {
-            FileInputStream fileInputStream = context.openFileInput("packages_" + name + ".xml");
+            FileInputStream fileInputStream = context.openFileInput(getFileNameOfPackage(name));
             return true;
         } catch (FileNotFoundException e) {
             return false;
@@ -45,5 +45,9 @@ public class PackageManager {
         if (listOfEnabledPackages == null)
             listOfEnabledPackages = new HashSet<String>();
         return listOfEnabledPackages;
+    }
+
+    public static String getFileNameOfPackage(String name) {
+        return "packages_" + name + ".xml";
     }
 }

@@ -2,6 +2,7 @@ package iswd.aarol.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -52,7 +53,7 @@ public class PackagesActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.packages_layout);
+        setContentView(R.layout.activity_packages);
     }
 
     @Override
@@ -103,7 +104,7 @@ public class PackagesActivity extends Activity {
                 waitingDialog.dismiss();
                 waitingDialog = null;
 
-                Toast toast = Toast.makeText(PackagesActivity.this, status.getMessageId(), Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getApplicationContext(), status.getMessageId(), Toast.LENGTH_LONG);
                 toast.show();
 
                 if (status == DownloadStatus.SUCCESS) {
@@ -132,13 +133,11 @@ public class PackagesActivity extends Activity {
             protected DownloadStatus doInBackground(Void... params) {
                 try {
                     InputStream inputStream = (InputStream) getRepositoryURL(name).getContent();
-                    FileOutputStream fileOutputStream = openFileOutput("packages_" + name + ".xml", MODE_PRIVATE);
+                    FileOutputStream fileOutputStream = openFileOutput(PackageManager.getFileNameOfPackage(name), MODE_PRIVATE);
                     IOUtils.copy(inputStream, fileOutputStream);
 
                 } catch (IOException e) {
                     return DownloadStatus.HTTP_ERROR;
-                    //} catch (XmlPullParserException e) {
-                    //    return DownloadStatus.PARSING_ERROR;
                 }
                 return DownloadStatus.SUCCESS;
             }
@@ -152,7 +151,7 @@ public class PackagesActivity extends Activity {
                 waitingDialog.dismiss();
                 waitingDialog = null;
 
-                Toast toast = Toast.makeText(PackagesActivity.this, status.getMessageId(), Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getApplicationContext(), status.getMessageId(), Toast.LENGTH_LONG);
                 toast.show();
                 refreshList();
             }
@@ -181,7 +180,7 @@ public class PackagesActivity extends Activity {
 
     public void deleteClicked(View view) {
         String name = getPackageNameFromParentsTag(view);
-        deleteFile("packages_" + name + ".xml");
+        deleteFile(PackageManager.getFileNameOfPackage(name));
         PackageManager.setEnabled(this, name, false);
         refreshList();
     }
@@ -193,9 +192,16 @@ public class PackagesActivity extends Activity {
         PackageManager.setEnabled(this, name, enabled);
     }
 
+    public void detailsClicked(View view) {
+        String name = getPackageNameFromParentsTag(view);
+        Intent intent = new Intent(this, PackageDetailsActivity.class);
+        intent.putExtra(PackageDetailsActivity.PACKAGE_NAME_EXTRA, name);
+        startActivity(intent);
+    }
+
     private String getPackageNameFromParentsTag(View view) {
         View parent = (View) view.getParent();
-        return (String) parent.getTag(R.id.packageNameTag);
+        return (String) parent.getTag(R.id.tag_package_name);
     }
 
     private ListView getViewListView() {
