@@ -3,7 +3,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
         android:key="repo_url"
-        android:title="Repository's URL"
-        android:summary="Address of repository with packages"
+        android:title="@string/property_repository_url"
+        android:summary="@string/property_repository_url_summary"
         android:defaultValue="http://sirius.cs.put.poznan.pl/~inf94264/listOfPackages.xml" />
+    <CheckBoxPreference
+        android:key="enable_stabilization"
+        android:title="@string/property_enable_stabilization"
+        android:summary="@string/property_enable_stabilization_summary"
+        android:defaultValue="true" />
 </PreferenceScreen>

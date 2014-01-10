@@ -41,4 +41,12 @@
     <string name="package_details_error">Error occurred while reading the package</string>
     <string name="no_camera">Problem occurred while opening camera</string>
     <string name="loading_package_error">Error occurred while loading one of the enabled packages</string>
+    <string name="color_button">choose color</string>
+    <string name="title_dialog_colorpicker">Pick a color</string>
+    <string name="colorpicker_ok">OK</string>
+    <string name="colorpicker_cancel">Cancel</string>
+    <string name="property_repository_url">Repository\'s URL</string>
+    <string name="property_repository_url_summary">Address of repository with packages</string>
+    <string name="property_enable_stabilization_summary">Prevents shaking of displayed points</string>
+    <string name="property_enable_stabilization">Enable stabilization</string>
 </resources>

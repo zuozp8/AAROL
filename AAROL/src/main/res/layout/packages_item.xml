@@ -21,6 +21,14 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/colorButton"
+        android:onClick="colorClicked"
+        android:contentDescription="@string/color_button" />
+
+    <ImageButton
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:src="@android:drawable/ic_menu_agenda"
         android:id="@+id/detailsButton"
         android:onClick="detailsClicked"

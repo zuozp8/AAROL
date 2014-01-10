@@ -1,12 +1,14 @@
 package iswd.aarol.widget;
 
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.List;
@@ -46,6 +48,12 @@ public class PackagesArrayAdapter extends ArrayAdapter<LocationPackageSnippet> {
         view.findViewById(R.id.enableCheckBox).setVisibility(downloaded ? View.VISIBLE : View.GONE);
         view.findViewById(R.id.detailsButton).setVisibility(downloaded ? View.VISIBLE : View.GONE);
         view.findViewById(R.id.deleteButton).setVisibility(downloaded ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.colorButton).setVisibility(downloaded ? View.VISIBLE : View.GONE);
+        if (downloaded) {
+            int color = PackageManager.getColorOfPackage(getContext(), item.name);
+            ColorDrawable colorDrawable = new ColorDrawable(color);
+            ((ImageButton) view.findViewById(R.id.colorButton)).setImageDrawable(colorDrawable);
+        }
 
         CheckBox checkBox = (CheckBox) view.findViewById(R.id.enableCheckBox);
         checkBox.setChecked(PackageManager.isEnabled(getContext(), item.name));

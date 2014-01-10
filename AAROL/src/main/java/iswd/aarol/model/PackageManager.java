@@ -2,11 +2,13 @@ package iswd.aarol.model;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.preference.PreferenceManager;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 
@@ -49,5 +51,23 @@ public class PackageManager {
 
     public static String getFileNameOfPackage(String name) {
         return "packages_" + name + ".xml";
+    }
+
+    public static int getColorOfPackage(Context context, String name) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!sharedPref.contains(name + "|color")) {
+            Random r = new Random();
+            SharedPreferences.Editor prefEditor = sharedPref.edit();
+            int randomColor = Color.HSVToColor(new float[]{r.nextInt(360), 1, 1});
+            prefEditor.putInt(name + "|color", randomColor);
+            prefEditor.commit();
+        }
+        return sharedPref.getInt(name + "|color", 0);
+    }
+
+    public static void setColorOfPackage(Context context, String name, int color) {
+        SharedPreferences.Editor sharedPref = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        sharedPref.putInt(name + "|color", color);
+        sharedPref.commit();
     }
 }

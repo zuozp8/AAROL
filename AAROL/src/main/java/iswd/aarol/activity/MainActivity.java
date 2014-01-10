@@ -15,7 +15,6 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,7 +42,7 @@ public class MainActivity extends Activity {
 
     private LocationPoint lastLocation = null;
 
-    private List<LocationPackage> enabledPackages = new ArrayList<LocationPackage>();
+    private List<LocationPackage> enabledPackages = null;
     private LocationPoint leadToLocation = null;
     private float[] lastGravity = null;
     private float[] lastGeomagnetic = null;
@@ -156,6 +155,7 @@ public class MainActivity extends Activity {
     }
 
     private void loadPackages() {
+        enabledPackages = new ArrayList<LocationPackage>();
         for (String packageName : PackageManager.getEnabledPackageList(this)) {
             try {
                 enabledPackages.add(LocationPackageFactory.create(this, packageName));
@@ -174,7 +174,6 @@ public class MainActivity extends Activity {
                 try {
                     camera = Camera.open();
                 } catch (RuntimeException e) {
-                    Log.e("AAROLX", "error");
                     return false;
                 }
                 return true;
@@ -273,6 +272,7 @@ public class MainActivity extends Activity {
     private void manageLeadToMode() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         String leadToPackageName = sharedPref.getString(MainActivity.LEAD_TO_PACKAGE_NAME, null);
+        leadToLocation = null;
         if (leadToPackageName != null && PackageManager.isEnabled(this, leadToPackageName)) {
             int leadToLocationId = sharedPref.getInt(MainActivity.LEAD_TO_LOCATION_ID, 0);
             for (LocationPackage locationPackage : enabledPackages) {

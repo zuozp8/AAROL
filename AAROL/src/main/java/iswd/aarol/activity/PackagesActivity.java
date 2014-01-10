@@ -1,7 +1,9 @@
 package iswd.aarol.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -12,6 +14,8 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.larswerkman.holocolorpicker.ColorPicker;
 
 import org.apache.commons.io.IOUtils;
 import org.xmlpull.v1.XmlPullParserException;
@@ -210,5 +214,32 @@ public class PackagesActivity extends Activity {
 
     private void refreshList() {
         ((BaseAdapter) getViewListView().getAdapter()).notifyDataSetChanged();
+    }
+
+    public void colorClicked(View view) {
+        final String packageName = getPackageNameFromParentsTag(view);
+
+        final ColorPicker colorPicker = new ColorPicker(this);
+        colorPicker.setColor(PackageManager.getColorOfPackage(this, packageName));
+        colorPicker.setOldCenterColor(PackageManager.getColorOfPackage(this, packageName));
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.title_dialog_colorpicker);
+        builder.setPositiveButton(R.string.colorpicker_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                PackageManager.setColorOfPackage(PackagesActivity.this, packageName, colorPicker.getColor());
+                refreshList();
+            }
+        });
+        builder.setNegativeButton(R.string.colorpicker_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.setView(colorPicker);
+        dialog.show();
     }
 }

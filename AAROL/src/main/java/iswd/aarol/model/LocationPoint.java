@@ -37,10 +37,6 @@ public class LocationPoint {
         _hasAltitude = false;
     }
 
-    public static LocationPoint getKarolinChimneyLocation() {
-        return new LocationPoint(52.436411, 16.988583, 83);
-    }
-
     public XYZLocation getXYZPosition(boolean useAltitude) {
         double latitude = toRadians(this.latitude);
         double longitude = toRadians(this.longitude);
