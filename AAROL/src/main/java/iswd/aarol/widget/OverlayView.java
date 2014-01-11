@@ -22,6 +22,9 @@ import iswd.aarol.model.LocationPoint;
 import iswd.aarol.model.PackageManager;
 import iswd.aarol.model.XYZLocation;
 
+import static android.util.FloatMath.cos;
+import static android.util.FloatMath.sin;
+import static java.lang.Math.abs;
 import static java.lang.Math.atan;
 import static java.lang.Math.atan2;
 import static java.lang.Math.min;
@@ -139,10 +142,36 @@ public class OverlayView extends View {
             return;
         }
 
-        double xOnScreen = toDegrees(atan(relativePosition[1] / relativePosition[2])) / mainActivity.getCamera().getParameters().getHorizontalViewAngle() * mainActivity.getCameraPreview().getWidth();
-        double yOnScreen = toDegrees(atan(relativePosition[0] / relativePosition[2])) / mainActivity.getCamera().getParameters().getVerticalViewAngle() * mainActivity.getCameraPreview().getHeight();
+        double xAngle = toDegrees(atan(relativePosition[1] / relativePosition[2]));
+        double yAngle = toDegrees(atan(relativePosition[0] / relativePosition[2]));
+        float cameraXAngle = mainActivity.getCamera().getParameters().getHorizontalViewAngle();
+        float cameraYAngle = mainActivity.getCamera().getParameters().getVerticalViewAngle();
+        double xOnScreen = xAngle / cameraXAngle * mainActivity.getCameraPreview().getWidth();
+        double yOnScreen = yAngle / cameraYAngle * mainActivity.getCameraPreview().getHeight();
 
-        canvas.drawCircle((float) (getWidth() / 2 + xOnScreen), (float) (getHeight() / 2 + yOnScreen), 10, circlesPaint);
+        if (abs(xOnScreen) > getWidth() / 2 - 10 || abs(yOnScreen) > getHeight() / 2 - 10) {
+            printBorderArrow(canvas, (float) toDegrees(atan2(yOnScreen, xOnScreen)));
+        } else {
+            canvas.drawCircle((float) (getWidth() / 2 + xOnScreen), (float) (getHeight() / 2 + yOnScreen), 10, circlesPaint);
+        }
+    }
+
+    private void printBorderArrow(Canvas canvas, float angle) {
+        canvas.save();
+        canvas.translate(getWidth() / 2f, getHeight() / 2f);
+        canvas.rotate(angle);
+        angle = abs(angle) % 180;
+        if (angle > 90)
+            angle = 180 - angle;
+        angle = (float) toRadians(angle);
+        float radiusToBorder = angle < atan(getHeight() / (float) getWidth()) ? getWidth() / 2 / cos(angle) : getHeight() / 2 / sin(angle);
+        canvas.translate(radiusToBorder, 0);
+        canvas.drawLines(new float[]{
+                0, 0, -25, 0,
+                0, 0, -15, 10,
+                0, 0, -15, -10},
+                circlesPaint);
+        canvas.restore();
     }
 
     private double[] getRelativePosition(LocationPoint lastLocation, float[] transformationMatrix, LocationPoint targetLocation) {
@@ -176,6 +205,7 @@ public class OverlayView extends View {
 
         circlesPaint = new Paint();
         circlesPaint.setStyle(Paint.Style.STROKE);
-        circlesPaint.setStrokeWidth(2);
+        circlesPaint.setStrokeWidth(3);
+        waitingTextPaint.setShadowLayer(5f, 0f, 0f, Color.WHITE);
     }
 }
