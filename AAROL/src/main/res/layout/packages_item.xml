@@ -9,7 +9,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/packageNameText"
         android:layout_weight="1"
-        android:layout_width="0dp" />
+        android:layout_width="0dp"
+        android:layout_gravity="fill" />
 
     <CheckBox
         android:layout_width="wrap_content"

@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import iswd.aarol.R;
 import iswd.aarol.model.LocationPackage;
@@ -32,10 +33,13 @@ public class PackageDetailsActivity extends Activity {
         try {
             locationPackage = LocationPackageFactory.create(this, locationPackageName);
         } catch (Exception e) {
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.loading_package_error, Toast.LENGTH_LONG);
+            toast.show();
             throw new RuntimeException(e);
-            //TODO handle
         }
         ((TextView) findViewById(R.id.packageNameInDetails)).setText(locationPackage.getPackageName());
+
+        ((CheckBox) findViewById(R.id.enableCheckBoxInDetails)).setChecked(PackageManager.isEnabled(this, locationPackageName));
 
         ListView listView = (ListView) findViewById(R.id.locationsList);
         listView.setAdapter(new LocationsArrayAdapter(this, locationPackage.getLocations()));

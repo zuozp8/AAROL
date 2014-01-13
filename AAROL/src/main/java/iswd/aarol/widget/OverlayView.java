@@ -1,15 +1,20 @@
 package iswd.aarol.widget;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
+import android.util.FloatMath;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.HashMap;
@@ -27,6 +32,7 @@ import static android.util.FloatMath.sin;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan;
 import static java.lang.Math.atan2;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
@@ -36,20 +42,27 @@ public class OverlayView extends View {
 
     private Paint waitingTextPaint = null;
     private Paint circlesPaint = null;
-    private boolean paintsPrepared = false;
+    private Paint detailsPaint = null;
 
+    LocationPoint pointWithDetails = null;
+
+    private RectF detailsBox = null;
     private Map<LocationPoint, double[]> oldPositions = null;
+    private Paint detailsBackgroundPaint = null;
 
     public OverlayView(Context context) {
         super(context);
+        init();
     }
 
     public OverlayView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public OverlayView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        init();
     }
 
     @Override
@@ -61,10 +74,6 @@ public class OverlayView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        if (!paintsPrepared) {
-            preparePaints();
-        }
 
         if (!ready) {
             String message = getResources().getString(R.string.waiting_for_signals);
@@ -93,6 +102,11 @@ public class OverlayView extends View {
         boolean enableStabilization = PreferenceManager.getDefaultSharedPreferences(getContext()).getBoolean("enable_stabilization", true);
 
         if (activity.getLeadToLocation() == null) {
+            //Parameters of the point, that will have it's description shown
+            pointWithDetails = null;
+            float minDistance = Float.POSITIVE_INFINITY;
+            float[] minLocation = null;
+
             for (LocationPackage locationPackage : activity.getEnabledPackages()) {
                 circlesPaint.setColor(PackageManager.getColorOfPackage(getContext(), locationPackage.getPackageName()));
                 for (LocationPoint locationPoint : locationPackage.getLocations()) {
@@ -106,14 +120,73 @@ public class OverlayView extends View {
                         }
                         oldPositions.put(locationPoint, relativePosition.clone());
                     }
-                    drawLocation(activity, canvas, relativePosition);
+                    float[] drawLocation = drawLocation(activity, canvas, relativePosition);
+
+                    if (drawLocation != null) {
+                        float distanceFromScreenCenter = FloatMath.sqrt(drawLocation[0] * drawLocation[0] + drawLocation[1] * drawLocation[1]);
+                        if (distanceFromScreenCenter < minDistance) {
+                            pointWithDetails = locationPoint;
+                            minDistance = distanceFromScreenCenter;
+                            minLocation = drawLocation;
+                        }
+                    }
                 }
+            }
+
+            if (pointWithDetails != null) {
+                drawDetails(canvas, pointWithDetails, minLocation);
+            } else {
+                detailsBox = null;
             }
         } else {
             double[] relativePosition = getRelativePosition(lastLocation, transformationMatrix, activity.getLeadToLocation());
             double angle = toDegrees(atan2(relativePosition[1], relativePosition[2]));
             drawArrow(canvas, angle);
         }
+    }
+
+    private void drawDetails(Canvas canvas, LocationPoint locationPoint, float[] onScreenLocation) {
+        circlesPaint.setColor(Color.WHITE);
+        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 7, circlesPaint);
+        circlesPaint.setColor(Color.BLACK);
+        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 3, circlesPaint);
+        circlesPaint.setColor(Color.WHITE);
+        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 16, circlesPaint);
+        circlesPaint.setColor(Color.BLACK);
+        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 13, circlesPaint);
+
+        detailsPaint.setTextSize(30);
+        if (locationPoint.getWikipediaLink() != null && !locationPoint.getWikipediaLink().isEmpty()) {
+            detailsPaint.setColor(Color.BLUE);
+            detailsPaint.setFlags(Paint.UNDERLINE_TEXT_FLAG);
+        } else {
+            detailsPaint.setColor(Color.BLACK);
+            detailsPaint.setFlags(Paint.DEV_KERN_TEXT_FLAG);
+        }
+
+        detailsPaint.setTextSize(50);
+        while (detailsPaint.measureText(locationPoint.getName()) > getWidth() / 2) {
+            detailsPaint.setTextSize(detailsPaint.getTextSize() * 0.95f);
+        }
+
+        Rect bounds = new Rect();
+        detailsPaint.getTextBounds(locationPoint.getName(), 0, locationPoint.getName().length(), bounds);
+
+        float textPositionX = getWidth() / 2f + onScreenLocation[0] - bounds.right / 2f;
+        textPositionX = min(textPositionX, getWidth() - 20 - bounds.right);
+        textPositionX = max(textPositionX, 20);
+
+        float textPositionY = getHeight() / 2f - bounds.top + onScreenLocation[1] + 30;
+
+        if (textPositionY > getHeight() - 70) {
+            textPositionY = getHeight() / 2f + onScreenLocation[1] - 30;
+        }
+
+        detailsBox = new RectF(textPositionX - 8, textPositionY + bounds.top - 8,
+                textPositionX + bounds.right + 8, textPositionY + 8);
+        canvas.drawRoundRect(detailsBox, 5f, 5f, detailsBackgroundPaint);
+
+        canvas.drawText(locationPoint.getName(), textPositionX, textPositionY, detailsPaint);
     }
 
     private void drawArrow(Canvas canvas, double degrees) {
@@ -131,29 +204,27 @@ public class OverlayView extends View {
         canvas.restore();
     }
 
-    private void drawLocation(MainActivity mainActivity, Canvas canvas, double[] relativePosition) {
-
-        if (relativePosition[2] == 0.) {
-            return;
-        }
+    private float[] drawLocation(MainActivity mainActivity, Canvas canvas, double[] relativePosition) {
 
         //Check if we are facing the target
-        if (relativePosition[2] > 0.) {
-            return;
+        if (relativePosition[2] >= 0.) {
+            return null;
         }
 
-        double xAngle = toDegrees(atan(relativePosition[1] / relativePosition[2]));
-        double yAngle = toDegrees(atan(relativePosition[0] / relativePosition[2]));
+        float xAngle = (float) toDegrees(atan(relativePosition[1] / relativePosition[2]));
+        float yAngle = (float) toDegrees(atan(relativePosition[0] / relativePosition[2]));
         float cameraXAngle = mainActivity.getCamera().getParameters().getHorizontalViewAngle();
         float cameraYAngle = mainActivity.getCamera().getParameters().getVerticalViewAngle();
-        double xOnScreen = xAngle / cameraXAngle * mainActivity.getCameraPreview().getWidth();
-        double yOnScreen = yAngle / cameraYAngle * mainActivity.getCameraPreview().getHeight();
+        float xOnScreen = xAngle / cameraXAngle * mainActivity.getCameraPreview().getWidth();
+        float yOnScreen = yAngle / cameraYAngle * mainActivity.getCameraPreview().getHeight();
 
         if (abs(xOnScreen) > getWidth() / 2 - 10 || abs(yOnScreen) > getHeight() / 2 - 10) {
             printBorderArrow(canvas, (float) toDegrees(atan2(yOnScreen, xOnScreen)));
+            return null;
         } else {
-            canvas.drawCircle((float) (getWidth() / 2 + xOnScreen), (float) (getHeight() / 2 + yOnScreen), 10, circlesPaint);
+            canvas.drawCircle(getWidth() / 2 + xOnScreen, getHeight() / 2 + yOnScreen, 10, circlesPaint);
         }
+        return new float[]{xOnScreen, yOnScreen};
     }
 
     private void printBorderArrow(Canvas canvas, float angle) {
@@ -196,7 +267,7 @@ public class OverlayView extends View {
         ready = true;
     }
 
-    private void preparePaints() {
+    private void init() {
         waitingTextPaint = new Paint();
         waitingTextPaint.setTextAlign(Paint.Align.CENTER);
         waitingTextPaint.setTextSize(30);
@@ -206,6 +277,31 @@ public class OverlayView extends View {
         circlesPaint = new Paint();
         circlesPaint.setStyle(Paint.Style.STROKE);
         circlesPaint.setStrokeWidth(3);
-        waitingTextPaint.setShadowLayer(5f, 0f, 0f, Color.WHITE);
+
+        detailsPaint = new Paint();
+
+        detailsBackgroundPaint = new Paint();
+        detailsBackgroundPaint.setStyle(Paint.Style.FILL);
+        detailsBackgroundPaint.setColor(Color.argb(200, 180, 180, 180));
+        detailsBackgroundPaint.setShadowLayer(5f, 0f, 0f, Color.WHITE);
+
+        setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() != MotionEvent.ACTION_DOWN) {
+                    return false;
+                }
+                if (detailsBox == null || !detailsBox.contains(event.getX(), event.getY())) {
+                    return false;
+                }
+                String wikipediaLink = pointWithDetails.getWikipediaLink();
+                if (wikipediaLink == null || wikipediaLink.isEmpty()) {
+                    return false;
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(wikipediaLink));
+                getContext().startActivity(browserIntent);
+                return true;
+            }
+        });
     }
 }
