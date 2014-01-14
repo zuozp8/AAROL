@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import iswd.aarol.activity.MainActivity;
+
 
 public class PackageManager {
     public static boolean isDownloaded(Context context, String name) {
@@ -69,5 +71,14 @@ public class PackageManager {
         SharedPreferences.Editor sharedPref = PreferenceManager.getDefaultSharedPreferences(context).edit();
         sharedPref.putInt(name + "|color", color);
         sharedPref.commit();
+    }
+
+    public static void leadTo(Context context, String locationPackageName, int locationId) {
+        SharedPreferences.Editor sharedPref = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        sharedPref.putString(MainActivity.LEAD_TO_PACKAGE_NAME, locationPackageName);
+        sharedPref.putInt(MainActivity.LEAD_TO_LOCATION_ID, locationId);
+        sharedPref.commit();
+
+        setEnabled(context, locationPackageName, true);
     }
 }

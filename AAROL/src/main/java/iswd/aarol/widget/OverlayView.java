@@ -43,12 +43,16 @@ public class OverlayView extends View {
     private Paint waitingTextPaint = null;
     private Paint circlesPaint = null;
     private Paint detailsPaint = null;
+    private Paint detailsPaintWithLink = null;
+    private Paint distanceTextPaint;
 
     LocationPoint pointWithDetails = null;
+    LocationPackage packageOfPointWithDetails = null;
 
     private RectF detailsBox = null;
     private Map<LocationPoint, double[]> oldPositions = null;
     private Paint detailsBackgroundPaint = null;
+    private float minRelativeDistance;
 
     public OverlayView(Context context) {
         super(context);
@@ -104,13 +108,17 @@ public class OverlayView extends View {
         if (activity.getLeadToLocation() == null) {
             //Parameters of the point, that will have it's description shown
             pointWithDetails = null;
-            float minDistance = Float.POSITIVE_INFINITY;
+            float minDistanceFromScreenCenter = Float.POSITIVE_INFINITY;
             float[] minLocation = null;
 
             for (LocationPackage locationPackage : activity.getEnabledPackages()) {
                 circlesPaint.setColor(PackageManager.getColorOfPackage(getContext(), locationPackage.getPackageName()));
                 for (LocationPoint locationPoint : locationPackage.getLocations()) {
                     double[] relativePosition = getRelativePosition(lastLocation, transformationMatrix, locationPoint);
+                    float relativeDistance = FloatMath.sqrt((float) (relativePosition[0] * relativePosition[0]
+                            + relativePosition[1] * relativePosition[1]
+                            + relativePosition[2] * relativePosition[2]));
+
                     if (enableStabilization) {
                         if (oldPositions.containsKey(locationPoint)) {
                             double[] oldPosition = oldPositions.get(locationPoint);
@@ -124,9 +132,11 @@ public class OverlayView extends View {
 
                     if (drawLocation != null) {
                         float distanceFromScreenCenter = FloatMath.sqrt(drawLocation[0] * drawLocation[0] + drawLocation[1] * drawLocation[1]);
-                        if (distanceFromScreenCenter < minDistance) {
+                        if (distanceFromScreenCenter < minDistanceFromScreenCenter) {
                             pointWithDetails = locationPoint;
-                            minDistance = distanceFromScreenCenter;
+                            packageOfPointWithDetails = locationPackage;
+                            minDistanceFromScreenCenter = distanceFromScreenCenter;
+                            minRelativeDistance = relativeDistance; // relative distance is counted before stabilisation
                             minLocation = drawLocation;
                         }
                     }
@@ -138,10 +148,12 @@ public class OverlayView extends View {
             } else {
                 detailsBox = null;
             }
+            ((MainActivity) getContext()).findViewById(R.id.lead_to_button).setEnabled(pointWithDetails != null);
         } else {
             double[] relativePosition = getRelativePosition(lastLocation, transformationMatrix, activity.getLeadToLocation());
             double angle = toDegrees(atan2(relativePosition[1], relativePosition[2]));
             drawArrow(canvas, angle);
+            drawDetails(canvas, activity.getLeadToLocation(), new float[]{0, getHeight() / 4});
         }
     }
 
@@ -155,22 +167,21 @@ public class OverlayView extends View {
         circlesPaint.setColor(Color.BLACK);
         canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 13, circlesPaint);
 
-        detailsPaint.setTextSize(30);
+        Paint paintForNameText;
         if (locationPoint.getWikipediaLink() != null && !locationPoint.getWikipediaLink().isEmpty()) {
-            detailsPaint.setColor(Color.BLUE);
-            detailsPaint.setFlags(Paint.UNDERLINE_TEXT_FLAG);
+            paintForNameText = detailsPaintWithLink;
         } else {
-            detailsPaint.setColor(Color.BLACK);
-            detailsPaint.setFlags(Paint.DEV_KERN_TEXT_FLAG);
+            paintForNameText = detailsPaint;
         }
 
-        detailsPaint.setTextSize(50);
-        while (detailsPaint.measureText(locationPoint.getName()) > getWidth() / 2) {
-            detailsPaint.setTextSize(detailsPaint.getTextSize() * 0.95f);
+        paintForNameText.setTextSize(45);
+        String description = locationPoint.getName();
+        while (paintForNameText.measureText(description) > getWidth() * .7) {
+            paintForNameText.setTextSize(paintForNameText.getTextSize() * 0.95f);
         }
 
         Rect bounds = new Rect();
-        detailsPaint.getTextBounds(locationPoint.getName(), 0, locationPoint.getName().length(), bounds);
+        paintForNameText.getTextBounds(description, 0, description.length(), bounds);
 
         float textPositionX = getWidth() / 2f + onScreenLocation[0] - bounds.right / 2f;
         textPositionX = min(textPositionX, getWidth() - 20 - bounds.right);
@@ -183,10 +194,19 @@ public class OverlayView extends View {
         }
 
         detailsBox = new RectF(textPositionX - 8, textPositionY + bounds.top - 8,
-                textPositionX + bounds.right + 8, textPositionY + 8);
+                textPositionX + bounds.right + 8, textPositionY + 30 + 12);
         canvas.drawRoundRect(detailsBox, 5f, 5f, detailsBackgroundPaint);
 
-        canvas.drawText(locationPoint.getName(), textPositionX, textPositionY, detailsPaint);
+        canvas.drawText(description, textPositionX, textPositionY, paintForNameText);
+        String distanceText;
+        if (minRelativeDistance < 1000) {
+            distanceText = "" + (int) minRelativeDistance + " m";
+        } else if (minRelativeDistance < 10000) {
+            distanceText = "" + String.format("%.1f", minRelativeDistance / 1000) + " km";
+        } else {
+            distanceText = "" + (int) minRelativeDistance / 1000 + " km";
+        }
+        canvas.drawText("" + distanceText, textPositionX, textPositionY + 30, distanceTextPaint);
     }
 
     private void drawArrow(Canvas canvas, double degrees) {
@@ -279,6 +299,15 @@ public class OverlayView extends View {
         circlesPaint.setStrokeWidth(3);
 
         detailsPaint = new Paint();
+        detailsPaint.setColor(Color.BLACK);
+
+        detailsPaintWithLink = new Paint();
+        detailsPaintWithLink.setColor(Color.BLUE);
+        detailsPaintWithLink.setFlags(Paint.UNDERLINE_TEXT_FLAG);
+
+        distanceTextPaint = new Paint();
+        distanceTextPaint.setColor(Color.DKGRAY);
+        distanceTextPaint.setTextSize(25);
 
         detailsBackgroundPaint = new Paint();
         detailsBackgroundPaint.setStyle(Paint.Style.FILL);
@@ -303,5 +332,13 @@ public class OverlayView extends View {
                 return true;
             }
         });
+    }
+
+    public LocationPoint getPointWithDetails() {
+        return pointWithDetails;
+    }
+
+    public LocationPackage getPackageOfPointWithDetails() {
+        return packageOfPointWithDetails;
     }
 }

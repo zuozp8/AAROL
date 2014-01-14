@@ -2,9 +2,7 @@ package iswd.aarol.activity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ListView;
@@ -51,12 +49,7 @@ public class PackageDetailsActivity extends Activity {
     }
 
     public void leadToClicked(View view) {
-        SharedPreferences.Editor sharedPref = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        sharedPref.putString(MainActivity.LEAD_TO_PACKAGE_NAME, locationPackageName);
-        sharedPref.putInt(MainActivity.LEAD_TO_LOCATION_ID, (Integer) view.getTag(R.id.tag_location));
-        sharedPref.commit();
-
-        PackageManager.setEnabled(this, locationPackageName, true);
+        PackageManager.leadTo(this, locationPackageName, (Integer) view.getTag(R.id.tag_location));
 
         Intent backToMainIntent = new Intent(this, MainActivity.class);
         backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

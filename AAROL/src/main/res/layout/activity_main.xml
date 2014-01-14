@@ -25,6 +25,17 @@
         android:text="@string/cancel_lead_to"
         android:layout_marginRight="10pt"
         android:layout_marginBottom="10pt"
-        android:onClick="cancelLeadTo" />
+        android:onClick="cancelLeadToClicked" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lead_to_button"
+        android:layout_gravity="right|bottom"
+        android:text="@string/lead_to"
+        android:layout_marginRight="10pt"
+        android:layout_marginBottom="10pt"
+        android:onClick="leadToClicked"
+        android:enabled="false" />
 
 </FrameLayout>

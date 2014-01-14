@@ -286,9 +286,10 @@ public class MainActivity extends Activity {
 
         }
         findViewById(R.id.cancel_lead_to_button).setVisibility(leadToLocation != null ? View.VISIBLE : View.GONE);
+        findViewById(R.id.lead_to_button).setVisibility(leadToLocation != null ? View.GONE : View.VISIBLE);
     }
 
-    public void cancelLeadTo(View view) {
+    public void cancelLeadToClicked(View view) {
         SharedPreferences.Editor sharedPref = PreferenceManager.getDefaultSharedPreferences(this).edit();
         sharedPref.remove(LEAD_TO_PACKAGE_NAME);
         sharedPref.remove(LEAD_TO_LOCATION_ID);
@@ -303,5 +304,13 @@ public class MainActivity extends Activity {
 
     public LocationPoint getLeadToLocation() {
         return leadToLocation;
+    }
+
+    public void leadToClicked(View view) {
+        OverlayView overlayView = (OverlayView) findViewById(R.id.overlayView);
+        LocationPackage locationPackage = overlayView.getPackageOfPointWithDetails();
+        LocationPoint location = overlayView.getPointWithDetails();
+        PackageManager.leadTo(this, locationPackage.getPackageName(), locationPackage.getLocations().indexOf(location));
+        manageLeadToMode();
     }
 }
