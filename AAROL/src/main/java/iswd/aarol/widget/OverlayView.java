@@ -144,7 +144,7 @@ public class OverlayView extends View {
             }
 
             if (pointWithDetails != null) {
-                drawDetails(canvas, pointWithDetails, minLocation);
+                drawDetails(canvas, pointWithDetails, minLocation, true);
             } else {
                 detailsBox = null;
             }
@@ -153,19 +153,21 @@ public class OverlayView extends View {
             double[] relativePosition = getRelativePosition(lastLocation, transformationMatrix, activity.getLeadToLocation());
             double angle = toDegrees(atan2(relativePosition[1], relativePosition[2]));
             drawArrow(canvas, angle);
-            drawDetails(canvas, activity.getLeadToLocation(), new float[]{0, getHeight() / 4});
+            drawDetails(canvas, activity.getLeadToLocation(), new float[]{0, getHeight() / 4 - 20}, false);
         }
     }
 
-    private void drawDetails(Canvas canvas, LocationPoint locationPoint, float[] onScreenLocation) {
-        circlesPaint.setColor(Color.WHITE);
-        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 7, circlesPaint);
-        circlesPaint.setColor(Color.BLACK);
-        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 3, circlesPaint);
-        circlesPaint.setColor(Color.WHITE);
-        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 16, circlesPaint);
-        circlesPaint.setColor(Color.BLACK);
-        canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 13, circlesPaint);
+    private void drawDetails(Canvas canvas, LocationPoint locationPoint, float[] onScreenLocation, boolean highlight) {
+        if (highlight) {
+            circlesPaint.setColor(Color.WHITE);
+            canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 7, circlesPaint);
+            circlesPaint.setColor(Color.BLACK);
+            canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 3, circlesPaint);
+            circlesPaint.setColor(Color.WHITE);
+            canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 16, circlesPaint);
+            circlesPaint.setColor(Color.BLACK);
+            canvas.drawCircle(getWidth() / 2 + onScreenLocation[0], getHeight() / 2 + onScreenLocation[1], 13, circlesPaint);
+        }
 
         Paint paintForNameText;
         if (locationPoint.getWikipediaLink() != null && !locationPoint.getWikipediaLink().isEmpty()) {
@@ -189,7 +191,7 @@ public class OverlayView extends View {
 
         float textPositionY = getHeight() / 2f - bounds.top + onScreenLocation[1] + 30;
 
-        if (textPositionY > getHeight() - 70) {
+        if (textPositionY > getHeight() - 50) {
             textPositionY = getHeight() / 2f + onScreenLocation[1] - 30;
         }
 
@@ -199,7 +201,9 @@ public class OverlayView extends View {
 
         canvas.drawText(description, textPositionX, textPositionY, paintForNameText);
         String distanceText;
-        if (minRelativeDistance < 1000) {
+        if (minRelativeDistance == 0) {
+            distanceText = "";
+        } else if (minRelativeDistance < 1000) {
             distanceText = "" + (int) minRelativeDistance + " m";
         } else if (minRelativeDistance < 10000) {
             distanceText = "" + String.format("%.1f", minRelativeDistance / 1000) + " km";
